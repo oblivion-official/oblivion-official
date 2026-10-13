@@ -67,129 +67,138 @@ document.getElementById("brandTap").addEventListener("click",()=>{clickCount++;c
 document.getElementById("adminPassword").addEventListener("keydown",e=>{if(e.key==="Enter")loginAdmin()});
 function loginAdmin(){if(document.getElementById("adminPassword").value==="admin123"){sessionStorage.setItem("obl_admin","yes");document.getElementById("adminNav").classList.remove("hidden");closeModal("loginModal");document.getElementById("adminPassword").value="";openAdmin();toast("Akses admin berhasil")}else toast("Password salah")}
 function openAdmin(){if(sessionStorage.getItem("obl_admin")!=="yes"){openModal("loginModal");return}document.getElementById("adminNav").classList.remove("hidden");adminTab(currentAdminTab);openModal("adminModal")}
-function adminTab(tab){currentAdminTab=tab;let c=document.getElementById("adminPanelContent");if(tab==="general"){c.innerHTML=`<div class="admin-content"><div class="admin-box"><h3>Status server</h3><label><span>S));
-    c.appendChild(el("div","cat",a.cat));
-    var l=el("a","btn","Unduh");
-    l.href=a.link; l.target="_blank"; l.rel="noopener noreferrer";
-    c.appendChild(l);
-    g.appendChild(c);
-  });
+function adminTab(tab){currentAdminTab=tab;let c=document.getElementById("adminPanelContent");if(tab==="general"){c.innerHTML=`<div class="admin-content"><div class="admin-box"><h3>Status server</h3><label><span>Status yang ditampilkan ke pengunjung</span><select id="aOnline"><option value="true">Online</option><option value="false">Offline / Maintenance</option></select></label><button class="btn primary" style="margin-top:10px" onclick="saveGeneral()">Simpan status</button></div><div class="admin-box"><h3>Alamat server</h3><label>IP dan port<input id="aIP" value="${esc(state.serverIP)}"></label></div><div class="wide admin-box"><h3>Slogan & live preview</h3><label>Slogan<textarea id="aSlogan" rows="3" maxlength="220" oninput="document.getElementById('sloganPreview').textContent=this.value||'Preview slogan akan muncul di sini.'"></textarea></label><div id="sloganPreview" style="padding:15px;margin-top:10px;background:#090d1e;border-radius:12px;border:1px solid var(--line);overflow-wrap:anywhere">Preview slogan akan muncul di sini.</div><button class="btn primary" style="margin-top:10px" onclick="saveGeneral()">Simpan perubahan</button></div></div>`;document.getElementById("aOnline").value=String(state.serverOnline);document.getElementById("aSlogan").value=state.slogan;document.getElementById("sloganPreview").textContent=state.slogan}
+else if(tab==="prices"){let labels={basic:"Paket Basic",medium:"Paket Medium",high:"Paket High",extreme:"Paket Extreme",money:"Money (harga per 1.000)",shards:"Shards (harga per 1.000)",common:"Key Common",gold:"Key Gold",prime:"Key Prime",crimson:"Key Crimson",amethysth:"Key Amethysth",obliv:"Rank OBLIV",oblivplus:"Rank OBLIV+",oblivplusplus:"Rank OBLIV++",oblivtriple:"Rank OBLIV+++"};c.innerHTML=`<div class="admin-content">${Object.entries(labels).map(([k,l])=>`<label>${l}<input type="number" min="0" id="price_${k}" value="${state.prices[k]}"></label>`).join("")}<div class="admin-box wide"><h3>Limit kuantitas per produk</h3><div class="admin-content"><label>Money maksimum<input id="lim_money" type="number" min="1" value="${state.limits.money}"></label><label>Shards maksimum<input id="lim_shards" type="number" min="1" value="${state.limits.shards}"></label><label>Key maksimum<input id="lim_key" type="number" min="1" value="${state.limits.key}"></label><label>Rank maksimum<input id="lim_rank" type="number" min="1" value="${state.limits.rank}"></label></div></div><button class="btn primary wide" onclick="savePrices()">Simpan harga & limit</button></div>`}
+else if(tab==="vouchers"){c.innerHTML=`<div class="admin-content"><div class="admin-box wide"><h3>Buat voucher baru</h3><div class="admin-content"><label>Kode voucher<input id="vCode" placeholder="OBLIVION15" maxlength="32"></label><label>Diskon (%)<input id="vPercent" type="number" min="1" max="90" value="10"></label><label>Produk berlaku<select id="vProduct"><option value="all">Semua produk</option>${["basic","medium","high","extreme","money","shards","common","gold","prime","crimson","amethysth","obliv","oblivplus","oblivplusplus","oblivtriple"].map(x=>`<option value="${x}">${x}</option>`).join("")}</select></label><label>Kedaluwarsa (opsional)<input id="vExpiry" type="datetime-local"></label></div><button class="btn primary" style="margin-top:12px" onclick="createVoucher()">Buat voucher</button></div><div class="wide admin-box"><h3>Voucher aktif & tersimpan</h3><div id="voucherList"></div></div></div>`;renderVoucherList()}
+else if(tab==="social"){c.innerHTML=`<div class="admin-content"><div class="admin-box wide"><h3>Identitas brand</h3><div class="admin-content"><label>Huruf/logo teks<input id="aLogo" maxlength="4" value="${esc(state.logo)}"></label><label>IP server<input id="aIPSocial" value="${esc(state.serverIP)}"></label></div><button class="btn primary" style="margin-top:12px" onclick="saveSocial()">Simpan identitas</button></div><div class="admin-box wide"><h3>Link media sosial</h3><p class="notice">Kosongkan link untuk menyembunyikan platform. Gunakan URL lengkap dengan https://.</p>${state.socials.map((s,i)=>`<div class="admin-content" style="margin:10px 0"><label>${s.name} URL<input id="soc_${i}" value="${esc(s.url)}" placeholder="https://..."></label><label>Tampilkan<select id="soc_on_${i}"><option value="true" ${s.enabled?"selected":""}>Ya</option><option value="false" ${!s.enabled?"selected":""}>Tidak</option></select></label></div>`).join("")}<button class="btn primary" style="margin-top:12px" onclick="saveSocial()">Simpan sosial</button></div></div>`}
+else{c.innerHTML=`<div class="admin-box"><h3>Riwayat pesanan lokal</h3><div id="adminOrders"></div><button class="btn" onclick="exportOrders()">Ekspor JSON</button></div>`;renderAdminOrders()}}
+function saveGeneral(){state.serverOnline=document.getElementById("aOnline").value==="true";state.serverIP=document.getElementById("aIP").value.trim()||DEFAULTS.serverIP;state.slogan=document.getElementById("aSlogan").value.trim()||DEFAULTS.slogan;saveState();renderAll();toast("Pengaturan umum disimpan")}
+function savePrices(){Object.keys(state.prices).forEach(k=>{let el=document.getElementById("price_"+k);if(el)state.prices[k]=Math.max(0,Number(el.value)||0)});["money","shards","key","rank"].forEach(k=>{let el=document.getElementById("lim_"+k);if(el)state.limits[k]=Math.max(1,Number(el.value)||1)});saveState();renderAll();toast("Harga dan limit disimpan")}
+function createVoucher(){let code=document.getElementById("vCode").value.trim().toUpperCase();let percent=Number(document.getElementById("vPercent").value);let product=document.getElementById("vProduct").value;let expiry=document.getElementById("vExpiry").value;if(!/^[A-Z0-9_-]{3,32}$/.test(code))return toast("Kode 3–32 karakter: huruf, angka, _ atau -");if(percent<1||percent>90)return toast("Diskon harus 1–90%");if(state.vouchers.some(v=>v.code===code))return toast("Kode voucher sudah ada");state.vouchers.push({code,percent,product,expiry,enabled:true});saveState();adminTab("vouchers");toast("Voucher berhasil dibuat")}
+function renderVoucherList(){let el=document.getElementById("voucherList");if(!el)return;el.innerHTML=state.vouchers.length?state.vouchers.map((v,i)=>`<div class="server-ip" style="margin:8px 0"><div><b>${esc(v.code)}</b> · ${v.percent}%<br><small class="muted">Produk: ${esc(v.product)} · Exp: ${v.expiry?esc(v.expiry):"Tidak ada"}</small></div><button class="btn" onclick="deleteVoucher(${i})">Hapus</button></div>`).join(""):'<div class="empty">Belum ada voucher.</div>'}
+function deleteVoucher(i){state.vouchers.splice(i,1);saveState();adminTab("vouchers")}
+function saveSocial(){let logo=document.getElementById("aLogo");if(logo)state.logo=logo.value.trim()||"O";let ip=document.getElementById("aIPSocial");if(ip)state.serverIP=ip.value.trim()||state.serverIP;state.socials.forEach((s,i)=>{let u=document.getElementById("soc_"+i),on=document.getElementById("soc_on_"+i);if(u)s.url=u.value.trim();if(on)s.enabled=on.value==="true"});saveState();renderAll();toast("Identitas dan sosial disimpan")}
+function renderAdminOrders(){let el=document.getElementById("adminOrders");if(!el)return;let orders=JSON.parse(localStorage.getItem("obl_orders")||"[]");el.innerHTML=orders.length?orders.map(o=>`<div class="server-ip"><div><b>${esc(o.name||"Player")}</b> · ${money(o.total)}<br><small class="muted">${esc(o.date)} · ${o.items.length} item</small></div></div>`).join(""):'<p class="muted">Belum ada ringkasan pesanan.</p>'}
+function exportOrders(){let data=localStorage.getItem("obl_orders")||"[]";let a=document.createElement("a");a.href=URL.createObjectURL(new Blob([data],{type:"application/json"}));a.download="oblivion-orders.json";a.click();URL.revokeObjectURL(a.href)}
+const bundles=[
+{id:"basic",name:"Paket Basic",label:"STARTER PACK",items:["Rank OBLIV","Money 25.000","Shards 1.500","Kit OBLIV","Key Gold 5×"],key:"basic"},
+{id:"medium",name:"Paket Medium",label:"EKONOMIS",items:["Rank OBLIV+","Money 50.000","Shards 2.500","Amethysth Pickaxe","Kit OBLIV+","Key Prime 5×"],key:"medium",ribbon:"VALUE"},
+{id:"high",name:"Paket High",label:"BEST SELLER",items:["Rank OBLIV++","Money 150.000","Shards 3.500","Amethysth Pickaxe","Kit OBLIV++","Key Crimson 2× + Prime 5×","Spawner Golem 2×"],key:"high",ribbon:"POPULAR"},
+{id:"extreme",name:"Paket Extreme",label:"ULTIMATE LOADOUT",items:["Rank OBLIV+++","Money 250.000","Shards 5.000","Amethysth Pickaxe","Kit OBLIV+++","Key Amethyst 5× + Crimson 5×","Spawner Golem 5×"],key:"extreme",ribbon:"RECOMMENDED"}];
+const productNames={money:"Money",shards:"Shards",common:"Key Common",gold:"Key Gold",prime:"Key Prime",crimson:"Key Crimson",amethysth:"Key Amethysth",obliv:"Rank OBLIV",oblivplus:"Rank OBLIV+",oblivplusplus:"Rank OBLIV++",oblivtriple:"Rank OBLIV+++"};
+function productPrice(id,qty){if(id==="money"||id==="shards")return state.prices[id]*(qty/1000);return state.prices[id]*qty}
+function discounted(price,id){if(!activeVoucher)return {price,percent:0};let v=state.vouchers.find(v=>v.code===activeVoucher&&v.enabled);if(!v)return {price,percent:0};if(v.expiry&&new Date(v.expiry).getTime()<Date.now())return {price,percent:0};if(v.product!=="all"&&v.product!==id)return {price,percent:0};return {price:Math.round(price*(100-v.percent)/100),percent:v.percent}}
+function priceHTML(price,id){let d=discounted(price,id);return d.percent?`<span class="strike">${money(price)}</span><b>${money(d.price)}</b> <span class="discount">-${d.percent}%</span>`:`<b>${money(price)}</b>`}
+function addCart(id,name,qty,price){let found=cart.find(x=>x.id===id&&x.name===name);if(found){found.qty+=qty;found.price=price}else cart.push({id,name,qty,price});localStorage.setItem("obl_cart",JSON.stringify(cart));renderAccount();toast(name+" ditambahkan ke keranjang")}
+function renderBundles(){document.getElementById("bundleGrid").innerHTML=bundles.map((b,i)=>`<article class="card ${i===2?"featured":""}">${b.ribbon?`<div class="ribbon">${b.ribbon}</div>`:""}<div class="tag">${b.label}</div><h3>${b.name}</h3><div class="price" id="bundlePrice_${b.id}">${priceHTML(state.prices[b.key],b.id)}</div><ul class="feature-list">${b.items.map(x=>`<li>${x}</li>`).join("")}</ul><button class="btn ${i===2?"primary":""}" onclick="buyBundle('${b.id}')">Pilih Paket →</button></article>`).join("")}
+function buyBundle(id){let b=bundles.find(x=>x.id===id);let raw=state.prices[id],d=discounted(raw,id);addCart(id,b.name,1,d.price)}
+function renderTopups(){let defs=[{id:"money",title:"Top Up Money",desc:"Saldo ekonomi untuk kebutuhan in-game.",unit:1000,step:1000,min:1000,max:state.limits.money},{id:"shards",title:"Top Up Shards",desc:"Resource premium untuk progresmu.",unit:1000,step:500,min:500,max:state.limits.shards}];document.getElementById("topupGrid").innerHTML=defs.map(p=>`<article class="card product-card"><div class="tag">TOP UP</div><h3>${p.title}</h3><p class="muted" style="margin:0">${p.desc}</p><div class="controls"><label class="field">Jumlah<input type="number" id="qty_${p.id}" min="${p.min}" max="${p.max}" step="${p.step}" value="${p.unit}" onchange="updateProductPrice('${p.id}')"></label><label class="field">Satuan<select disabled><option>Unit</option></select></label></div><div class="buyline"><div><small class="muted">Total harga</small><div class="price" style="font-size:23px" id="sum_${p.id}">${priceHTML(productPrice(p.id,p.unit),p.id)}</div></div><button class="btn primary" onclick="buyProduct('${p.id}')">Tambah</button></div></article>`).join("")}
+function renderOther(){
+ const keyOptions=[["common","Common"],["gold","Gold"],["prime","Prime"],["crimson","Crimson"],["amethysth","Amethysth"]];
+ const rankKeys=["obliv","oblivplus","oblivplusplus","oblivtriple"];
+ document.getElementById("otherGrid").innerHTML=`
+ <article class="card product-card">
+  <div class="tag">KEYS & LOOT</div><h3>Key Crates</h3>
+  <p class="muted" style="margin:0">Pilih jenis key dan jumlahnya. Harga akan dihitung otomatis.</p>
+  <div class="controls">
+   <label class="field">Jenis Key<select id="keyType" onchange="updateProductPrice('key')">${keyOptions.map(([id,label])=>`<option value="${id}">Key ${label} — ${money(state.prices[id])}/unit</option>`).join("")}</select></label>
+   <label class="field">Kuantitas<input type="number" id="qty_key" min="1" max="${state.limits.key}" step="1" value="1" onchange="updateProductPrice('key')"></label>
+  </div>
+  <div class="buyline"><div><small class="muted">Total harga</small><div class="price" style="font-size:21px" id="sum_key">${priceHTML(state.prices.common,'common')}</div></div><button class="btn primary" onclick="buyProduct('key')">Tambah</button></div>
+ </article>
+ ${rankKeys.map((id,i)=>`<article class="card product-card ${i===2?'featured':''}"><div class="tag">RANK UPGRADE</div><h3>${productNames[id]}</h3><p class="muted" style="margin:0">Rank premium dengan benefit dan kit eksklusif.</p><div class="buyline" style="margin-top:auto"><div><small class="muted">Harga satuan</small><div class="price" style="font-size:21px" id="sum_${id}">${priceHTML(productPrice(id,1),id)}</div></div><button class="btn ${i===2?'primary':''}" onclick="buyProduct('${id}')">Pilih Rank</button></div></article>`).join("")}`;
 }
-$("q").oninput=render;
-
-/* ====== SLOGAN BERGANTI TIAP 5 DETIK ====== */
-var si=0;
-function slog(){
-  var s=$("slogan"); s.classList.add("out");
-  setTimeout(function(){s.textContent=SLOGANS[si%SLOGANS.length];si++;s.classList.remove("out")},400);
+let pendingPurchase=null;
+function updateProductPrice(id){
+ if(id==="key"){
+  let el=document.getElementById("qty_key"),keyId=document.getElementById("keyType")?.value||"common";
+  if(!el)return;let q=Math.max(1,Math.min(state.limits.key,Math.floor(Number(el.value)||1)));el.value=q;
+  let sum=document.getElementById("sum_key");if(sum)sum.innerHTML=priceHTML(productPrice(keyId,q),keyId);
+  return;
+ }
+ let el=document.getElementById("qty_"+id);if(!el)return;
+ let max=(id==="money"?state.limits.money:id==="shards"?state.limits.shards:1);
+ let min=(id==="money"?1000:id==="shards"?500:1);
+ let q=Math.max(min,Math.min(max,Math.floor(Number(el.value)||min)));
+ if(id==="money")q=Math.ceil(q/1000)*1000;if(id==="shards")q=Math.ceil(q/500)*500;el.value=q;
+ let sum=document.getElementById("sum_"+id);if(sum)sum.innerHTML=priceHTML(productPrice(id,q),id);
 }
-slog(); setInterval(slog,5000);
-
-/* ====== ADMIN ====== */
-CATS.forEach(function(c){var o=el("option",null,c);o.value=c;$("fCat").appendChild(o)});
-
-function adminList(){
-  var L=$("adminList"); L.textContent="";
-  apps.forEach(function(a){
-    var r=el("div","item");
-    r.appendChild(icon(a,"ico"));
-    r.appendChild(el("div","t",a.name+" ("+a.cat+")"));
-    var e=el("button","btn ghost","Edit"), d=el("button","btn ghost","Hapus");
-    e.onclick=function(){
-      editId=a.id; $("fName").value=a.name; $("fCat").value=a.cat;
-      $("fImg").value=(a.img&&a.img.indexOf("data:")!==0)?a.img:"";
-      $("fLink").value=a.link;
-      fileData=(a.img&&a.img.indexOf("data:")===0)?a.img:null;
-      $("msg").textContent="Mengedit: "+a.name;
-      scrollTo(0,0);
-    };
-    d.onclick=function(){
-      if(confirm("Hapus "+a.name+"?")){
-        apps=apps.filter(function(x){return x.id!==a.id});
-        persist("Dihapus."); adminList(); render();
-      }
-    };
-    r.appendChild(e); r.appendChild(d); L.appendChild(r);
-  });
+function requestPurchase(id,name,qty,rawPrice){
+ let d=discounted(rawPrice,id);
+ pendingPurchase={id,name,qty,rawPrice,price:d.price};
+ document.getElementById("purchasePreview").innerHTML=`<div><small class="muted">Produk dipilih</small><br><b>${esc(name)}</b></div><strong>${money(d.price)}</strong>`;
+ document.getElementById("purchaseNickname").value=localStorage.getItem("obl_player")||"";
+ openModal("nicknameModal");
 }
-function reset(){
-  editId=null; fileData=null;
-  ["fName","fImg","fLink","fFile"].forEach(function(i){$(i).value=""});
-  $("msg").textContent="";
+function buyBundle(id){let b=bundles.find(x=>x.id===id);requestPurchase(id,b.name,1,state.prices[id])}
+function buyProduct(id){
+ let qty=1,actualId=id,name=productNames[id];
+ if(id==="key"){
+  actualId=document.getElementById("keyType")?.value||"common";
+  qty=Math.max(1,Math.min(state.limits.key,Math.floor(Number(document.getElementById("qty_key").value)||1)));
+  name="Key "+({common:"Common",gold:"Gold",prime:"Prime",crimson:"Crimson",amethysth:"Amethysth"}[actualId])+" × "+qty;
+ }else if(id==="money"||id==="shards"){
+  updateProductPrice(id);qty=Number(document.getElementById("qty_"+id).value);
+  name=productNames[id]|| (id==="money"?"Money":"Shards");
+ }else{name=productNames[id];qty=1}
+ requestPurchase(actualId,name,qty,productPrice(actualId,qty));
 }
-
-$("adminLink").onclick=function(){
-  var p=prompt("Password admin:");
-  if(p===ADMIN_PASS){
-    $("modal").classList.add("show"); adminList();
-    setStatus(DB_URL?"Database online aktif.":"Mode browser saja (DB_URL kosong).");
-  } else if(p!==null){ alert("Password salah."); }
-};
-$("close").onclick=function(){$("modal").classList.remove("show")};
-$("cancel").onclick=reset;
-
-$("fFile").onchange=function(){
-  var f=this.files[0]; if(!f) return;
-  var im=new Image(), u=URL.createObjectURL(f);
-  im.onload=function(){
-    var s=192, c=document.createElement("canvas"); c.width=c.height=s;
-    var x=c.getContext("2d"), m=Math.min(im.width,im.height);
-    x.drawImage(im,(im.width-m)/2,(im.height-m)/2,m,m,0,0,s,s);
-    fileData=c.toDataURL("image/jpeg",.8);
-    URL.revokeObjectURL(u);
-    $("msg").textContent="Gambar siap.";
-  };
-  im.src=u;
-};
-
-$("save").onclick=function(){
-  var n=$("fName").value.trim(), l=$("fLink").value.trim(), i=$("fImg").value.trim();
-  if(!n||!okUrl(l)){$("msg").textContent="Isi nama dan link tujuan (awali dengan http/https).";return}
-  if(i&&!okUrl(i)){$("msg").textContent="Link gambar harus diawali http/https.";return}
-  var a={id:editId||String(Date.now()),name:n,cat:$("fCat").value,img:fileData||i,link:l};
-  if(editId) apps=apps.map(function(x){return x.id===editId?a:x});
-  else apps.unshift(a);
-  persist("Tersimpan."); adminList(); render();
-  editId=null; fileData=null;
-  ["fName","fImg","fLink","fFile"].forEach(function(k){$(k).value=""});
-};
-
-/* Backup */
-$("export").onclick=function(){
-  var b=new Blob([JSON.stringify(apps,null,2)],{type:"application/json"});
-  var a=document.createElement("a");
-  a.href=URL.createObjectURL(b);
-  a.download="rexapk-backup-"+new Date().toISOString().slice(0,10)+".json";
-  document.body.appendChild(a); a.click(); a.remove();
-  $("msg").textContent="Backup diunduh.";
-};
-$("importBtn").onclick=function(){$("importFile").click()};
-$("importFile").onchange=function(){
-  var f=this.files[0]; if(!f) return;
-  var r=new FileReader();
-  r.onload=function(){
-    try{
-      var d=clean(JSON.parse(r.result));
-      if(!d.length){$("msg").textContent="File kosong atau formatnya salah.";return}
-      if(!confirm("Ganti semua data dengan "+d.length+" aplikasi dari file ini?")) return;
-      apps=d; persist("Import berhasil."); adminList(); render();
-    }catch(e){$("msg").textContent="File JSON tidak valid."}
-  };
-  r.readAsText(f); this.value="";
-};
-
-/* ====== START ====== */
-(async function(){
-  var local=readLocal();
-  apps = local || clean(DEFAULT_APPS);
-  render();                          // tampil cepat dari data lokal dulu
-  var remote=await loadRemote();     // lalu sinkron dari database online
-  if(remote!==null){
-    if(remote.length||!local){ apps=remote.length?remote:apps; }
-    else if(local&&local.length){ apps=local; saveRemote(); } // db kosong, lokal ada -> isi db
-    writeLocal(); render();
-  }
-})();
+function confirmPurchase(){
+ if(!pendingPurchase)return;
+ let nickname=document.getElementById("purchaseNickname").value.trim();
+ if(!/^[A-Za-z0-9_]{3,16}$/.test(nickname))return toast("Nickname Minecraft harus 3–16 karakter (huruf, angka, underscore).");
+ localStorage.setItem("obl_player",nickname);
+ let p=pendingPurchase, total=p.price;
+ let order={name:nickname,total,items:[{id:p.id,name:p.name,qty:p.qty,price:p.price}],date:new Date().toLocaleString("id-ID")};
+ let orders=JSON.parse(localStorage.getItem("obl_orders")||"[]");orders.unshift(order);localStorage.setItem("obl_orders",JSON.stringify(orders));
+ let message=`Halo Admin OBLIVION OFFICIAL! Saya ingin memesan produk berikut.\n\nNickname Minecraft: ${nickname}\nProduk: ${p.name}\nKuantitas: ${p.qty}\nTotal: ${money(total)}\n\nMohon instruksi pembayaran dan konfirmasi benefit. Terima kasih!`;
+ let url="https://wa.me/6289676623406?text="+encodeURIComponent(message);
+ closeModal("nicknameModal");pendingPurchase=null;renderAccount();window.open(url,"_blank","noopener");toast("Mengarahkan ke WhatsApp admin...");
+}
+function applyVoucher(){let code=document.getElementById("voucherInput").value.trim().toUpperCase(),v=state.vouchers.find(v=>v.code===code&&v.enabled);let msg=document.getElementById("voucherMessage");if(!v){activeVoucher=null;msg.textContent="Kode tidak ditemukan atau tidak aktif.";renderAll();return}if(v.expiry&&new Date(v.expiry).getTime()<Date.now()){activeVoucher=null;msg.textContent="Voucher sudah kedaluwarsa.";renderAll();return}activeVoucher=code;msg.textContent=`Voucher ${code} aktif: diskon ${v.percent}% untuk ${v.product==="all"?"semua produk":"produk "+v.product}. Harga yang memenuhi syarat telah diperbarui.`;renderAll();toast("Voucher berhasil digunakan")}
+function clearVoucher(){activeVoucher=null;document.getElementById("voucherInput").value="";document.getElementById("voucherMessage").textContent="Voucher dihapus.";renderAll()}
+function renderSocial(){let icons={Discord:"◈","WhatsApp Community":"◉",TikTok:"♪",YouTube:"▶",Instagram:"◎",Website:"↗"};document.getElementById("socialGrid").innerHTML=state.socials.filter(s=>s.enabled&&s.url).map(s=>`<a class="social" href="${esc(s.url)}" target="_blank" rel="noopener"><div class="social-icon">${icons[s.name]||s.icon||"↗"}</div><div><b>${esc(s.name)}</b><small>Buka komunitas ↗</small></div></a>`).join("")||'<p class="muted">Link komunitas belum ditambahkan oleh admin.</p>'}
+function renderStatus(){document.body.classList.toggle("status-off",!state.serverOnline);document.getElementById("statusText").textContent=state.serverOnline?"SERVER ONLINE":"SERVER OFFLINE";document.getElementById("heroStatus").textContent=state.serverOnline?"● Online":"● Offline";document.getElementById("serverAddress").textContent=state.serverIP;document.getElementById("slogan").textContent=state.slogan;document.getElementById("logoMark").textContent=state.logo;document.getElementById("heroLogo").textContent=state.logo;document.getElementById("statusPill").classList.toggle("status-off",!state.serverOnline)}
+function renderAccount(){let name=localStorage.getItem("obl_player")||"";let input=document.getElementById("playerName");if(input&&input.value!==name)input.value=name;let orders=JSON.parse(localStorage.getItem("obl_orders")||"[]");document.getElementById("orderHistory").innerHTML=orders.length?orders.slice(0,8).map(o=>`<div style="margin:7px 0;padding:10px;border:1px solid var(--line);border-radius:10px">${esc(o.date)}<br><b>${esc(o.name||"")}</b> · ${money(o.total)}<br><small>${(o.items||[]).map(x=>esc(x.name)).join(", ")}</small></div>`).join("") : "Belum ada pesanan tersimpan."}
+function saveProfile(){let n=document.getElementById("playerName").value.trim();if(n&&!/^[A-Za-z0-9_]{3,16}$/.test(n))return toast("Username Minecraft harus 3–16 karakter.");localStorage.setItem("obl_player",n);toast("Profil disimpan di perangkat ini")}
+function checkout(){
+ if(!cart.length)return toast("Keranjang masih kosong");
+ let name=localStorage.getItem("obl_player")||"";
+ if(!name){toast("Isi nickname Minecraft terlebih dahulu.");document.getElementById("purchaseNickname").value="";openModal("nicknameModal");pendingPurchase=null;return}
+ let total=cart.reduce((s,x)=>s+x.price,0),orders=JSON.parse(localStorage.getItem("obl_orders")||"[]");
+ let order={name,total,items:cart,date:new Date().toLocaleString("id-ID")};orders.unshift(order);localStorage.setItem("obl_orders",JSON.stringify(orders));
+ let lines=cart.map((x,i)=>`${i+1}. ${x.name} — ${money(x.price)}`).join("\\n");
+ let message=`Halo Admin OBLIVION OFFICIAL! Saya ingin melanjutkan pembayaran.\\n\\nNickname Minecraft: ${name}\\n\\nDetail pesanan:\\n${lines}\\n\\nTOTAL: ${money(total)}\\n\\nMohon instruksi pembayaran dan konfirmasi benefit.`;
+ let url="https://wa.me/6289676623406?text="+encodeURIComponent(message);
+ window.open(url,"_blank","noopener");
+ cart=[];localStorage.setItem("obl_cart","[]");renderAccount();toast("Membuka WhatsApp untuk konfirmasi pesanan");
+}
+function clearCart(){cart=[];localStorage.setItem("obl_cart","[]");renderAccount();toast("Keranjang dikosongkan")}
+function copyIP(){navigator.clipboard?.writeText(state.serverIP).then(()=>toast("IP server disalin!")).catch(()=>toast("IP: "+state.serverIP));if(!navigator.clipboard)toast("IP: "+state.serverIP)}
+function renderAll(){renderStatus();renderBundles();renderTopups();renderOther();renderSocial();renderAccount();if(sessionStorage.getItem("obl_admin")==="yes")document.getElementById("adminNav").classList.remove("hidden")}
+document.getElementById("year").textContent=new Date().getFullYear();renderAll();
+function showPage(pageId){
+ const valid=["home","store","community","account"];
+ if(!valid.includes(pageId))pageId="home";
+ document.querySelectorAll("main > section").forEach(section=>{
+  const active=section.id===pageId;
+  section.classList.toggle("page-hidden",!active);
+  if(active){section.classList.remove("page-enter");void section.offsetWidth;section.classList.add("page-enter")}
+ });
+ document.querySelectorAll(".bottom-nav .nav-item").forEach(item=>item.classList.toggle("active",item.getAttribute("href")==="#"+pageId));
+ document.querySelectorAll('a[href^="#"]').forEach(a=>{
+  const target=a.getAttribute("href").slice(1);
+  if(valid.includes(target))a.setAttribute("aria-current",target===pageId?"page":"false");
+ });
+ window.scrollTo({top:0,behavior:"smooth"});
+ history.replaceState(null,"","#"+pageId);
+}
+document.querySelectorAll(".bottom-nav a").forEach(a=>a.addEventListener("click",e=>{e.preventDefault();showPage(a.getAttribute("href").slice(1))}));
+document.querySelectorAll('a[href^="#"]').forEach(a=>a.addEventListener("click",e=>{
+ const target=a.getAttribute("href").slice(1);
+ if(["home","store","community","account"].includes(target)){e.preventDefault();showPage(target)}
+}));
+showPage(["home","store","community","account"].includes(location.hash.slice(1))?location.hash.slice(1):"home");
 </script>
 </body>
-      </html>
+</html>
